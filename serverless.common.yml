@@ -1,0 +1,136 @@
+
+custom:
+    version: ${opt:version,"v1"}
+    apiName: ${opt:apiName}
+    roleName: ${opt:roleName}
+    clientName: ${opt:clientName}
+    resourceName: ${opt:resourceName}
+    accountId: ${opt:accountId}
+    apiDomain: ${opt:apiDomain}
+    region: ${opt:region, 'us-east-1'}
+    country: ${opt:country, 'us'}
+    stage: ${opt:stage, self:provider.stage}
+    resourcePrefix: ${self:custom.resourceName}-${self:custom.country}-${self:custom.stage} # e.g. bandup-us-prod
+    deploymentBucket: ${self:custom.resourceName}-${self:custom.country}-${self:custom.stage}-serverless # e.g. bandup-us-prod-serverless
+    apiNamePrefix: ${self:custom.clientName}-${self:custom.country}-${self:custom.stage}-${self:custom.apiName} # e.g. bandup-us-prod-data
+    snsArnPrefix: arn:aws:sns:${self:custom.region}:${self:custom.accountId}:${self:custom.resourcePrefix}
+    sqsArnPrefix: arn:aws:sqs:${self:custom.region}:${self:custom.accountId}:${self:custom.resourcePrefix}
+    customDomain:
+        certificateName: "*.${self:custom.apiDomain}"
+        domainName: ${self:custom.country}-${self:custom.stage}-${self:custom.apiName}.${self:custom.apiDomain}
+        basePath: v1
+        stage: ${self:custom.stage}
+        createRoute53Record: true
+    contentEncoding:
+        contentCompression: 200 # Minimum body size required for compression in bytes
+    
+
+environment:
+    RATE_LIMIT_POINTS_PER_SECOND: '6'
+    RESOURCE_PREFIX: ${self:custom.resourcePrefix}
+    SNS_TOPIC_ARN_PREFIX: ${self:custom.snsArnPrefix}
+    APIURL: https://${self:custom.customDomain.domainName}/${self:custom.customDomain.basePath}
+    STAGE: ${self:custom.stage}
+    REGION: ${self:custom.region, 'us-east-1'}
+    COUNTRY: ${self:custom.country, 'us'}
+    TRACK: ${opt:track,'true'}
+    TRACK_LIBS: ${opt:trackLibs,'false'}
+    API_DOMAIN: ${self:custom.apiDomain}
+    
+cors:
+    origin: "*"
+    headers:
+        - Content-Type
+        - X-Amz-Date
+        - Authorization
+        - X-Api-Key
+        - X-Amz-Security-Token
+        - X-Amz-User-Agent
+        - AccessToken
+        - APIToken
+        - RecordToken
+        - SolutionId
+        - Domain
+
+package:
+    exclude:
+        - run/**
+        - "*.bat"
+        - "*.sh"
+
+response:
+    template: $input.path('$')
+    statusCodes: 
+        200:
+            pattern: "" # Default response method
+            template: $input.path("$.body")
+        400:
+            pattern: '.*"statusCode":400,.*' # JSON response
+            template: $util.parseJson($input.json('$.errorMessage'))
+        401:
+            pattern: '.*"statusCode":401,.*' # JSON response
+            template: $util.parseJson($input.json('$.errorMessage'))
+        402:
+            pattern: '.*"statusCode":402,.*' # JSON response
+            template: $util.parseJson($input.json('$.errorMessage'))
+        403:
+            pattern: '.*"statusCode":403,.*' # JSON response
+            template: $util.parseJson($input.json('$.errorMessage'))
+            headers:
+                Content-Type: "'application/json'"
+        404:
+            pattern: '.*"statusCode":404,.*' # JSON response
+            template: $util.parseJson($input.json('$.errorMessage'))
+            headers:
+                Content-Type: "'application/json'"
+        405:
+            pattern: '.*"statusCode":405,.*' # JSON response
+            template: $util.parseJson($input.json('$.errorMessage'))
+            headers:
+                Content-Type: "'application/json'"
+        406:
+            pattern: '.*"statusCode":406,.*' # JSON response
+            template: $util.parseJson($input.json('$.errorMessage'))
+            headers:
+                Content-Type: "'application/json'"
+        407:
+            pattern: '.*"statusCode":407,.*' # JSON response
+            template: $util.parseJson($input.json('$.errorMessage'))
+            headers:
+                Content-Type: "'application/json'"
+        408:
+            pattern: '.*"statusCode":408,.*' # JSON response
+            template: $util.parseJson($input.json('$.errorMessage'))
+            headers:
+                Content-Type: "'application/json'"
+        429:
+            pattern: '.*"statusCode":429,.*' # JSON response
+            template: $util.parseJson($input.json('$.errorMessage'))
+            headers:
+                Content-Type: "'application/json'"
+        500:
+            pattern: '.*"statusCode":500,.*' # JSON response
+            template: $util.parseJson($input.json('$.errorMessage'))
+            headers:
+                Content-Type: "'application/json'"
+        501:
+            pattern: '.*"statusCode":501,.*' # JSON response
+            template: $util.parseJson($input.json('$.errorMessage'))
+            headers:
+                Content-Type: "'application/json'"
+        502:
+            pattern: '.*"statusCode":502,.*' # JSON response
+            template: $util.parseJson($input.json('$.errorMessage'))
+            headers:
+                Content-Type: "'application/json'"
+        503:
+            pattern: '.*"statusCode":503,.*' # JSON response
+            template: $util.parseJson($input.json('$.errorMessage'))
+            headers:
+                Content-Type: "'application/json'"
+        504:
+            pattern: '.*"statusCode":504,.*' # JSON response
+            template: $util.parseJson($input.json('$.errorMessage'))
+            headers:
+                Content-Type: "'application/json'"
+
